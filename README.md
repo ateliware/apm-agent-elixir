@@ -10,7 +10,7 @@ by adding `elastic_apm` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:elastic_apm, "~> 0.1.0"}
+    {:elastic_apm, "~> 0.0.1"}
   ]
 end
 ```
