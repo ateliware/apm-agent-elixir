@@ -1,17 +1,19 @@
 defmodule ElasticAPM.Agent do
   use GenServer
-  
-  def start_link(module) do
+
+  def start_link() do
     options = []
     GenServer.start_link(__MODULE__, options, name: __MODULE__)
   end
 
   @impl GenServer
-  def init(module) do
+  def init(state) do
     start()
+    {:ok, state}
   end
 
   def start() do
+    require IEx; IEx.pry()
     GenServer.cast(__MODULE__, :setup)
   end
 
