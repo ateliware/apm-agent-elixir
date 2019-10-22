@@ -1,11 +1,11 @@
 defmodule ElasticApm.Agent do
   use GenServer
   
-  def start_link() do
+  def start_link(module) do
   end
 
   @impl GenServer
-  def init() do
+  def init(module) do
     start()
   end
 
