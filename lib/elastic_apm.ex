@@ -1,4 +1,4 @@
-defmodule ElasticApm do
+defmodule ElasticAPM do
   @moduledoc """
   Documentation for ElasticApm.
   """

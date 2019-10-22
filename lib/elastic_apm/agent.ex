@@ -1,4 +1,4 @@
-defmodule ElasticApm.Agent do
+defmodule ElasticAPM.Agent do
   use GenServer
   
   def start_link(module) do

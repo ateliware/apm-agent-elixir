@@ -1,7 +1,7 @@
-defmodule ElasticApm.Instrumenter do
+defmodule ElasticAPM.Instrumenter do
   defmacro __using__(_arg) do
     quote do 
-      plug(ElasticApm)
+      plug(ElasticAPM)
     end
   end
 end
