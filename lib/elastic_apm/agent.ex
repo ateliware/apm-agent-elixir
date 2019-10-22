@@ -21,7 +21,6 @@ defmodule ElasticApm.Agent do
 
   @impl GenServer
   def handle_cast(:send, _from, state) do
-    start_transation()
   end
 
   def initialize do

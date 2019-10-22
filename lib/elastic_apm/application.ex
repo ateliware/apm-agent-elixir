@@ -3,7 +3,7 @@ defmodule ElasticApm.Application do
   
   def start(_type, _args) do
     children = [
-      ElasticAPM.Agent
+      ElasticApm.Agent
     ]
     opts = [strategy: :one_for_all, name: ElasticApm.Supervisor]
     Supervisor.start_link(children, opts)
