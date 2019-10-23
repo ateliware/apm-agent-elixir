@@ -1,7 +1,7 @@
 defmodule ElasticAPM.Agent do
   use GenServer
   
-  defstruct[:configs]
+  defstruct [:configs]
 
   def start_link() do
     options = []
