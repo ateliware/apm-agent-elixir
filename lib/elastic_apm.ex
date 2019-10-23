@@ -2,10 +2,10 @@ defmodule ElasticAPM do
   @moduledoc """
   Documentation for ElasticApm.
   """
+  
   def init(default), do: default
 
   def call(conn, _default) do
-    require IEx; IEx.pry()
     before_send(conn)
   end
 

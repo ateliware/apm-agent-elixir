@@ -1,5 +1,7 @@
 defmodule ElasticAPM.Agent do
   use GenServer
+  
+  defstruct[:configs]
 
   def start_link() do
     options = []
@@ -18,12 +20,11 @@ defmodule ElasticAPM.Agent do
 
   @impl GenServer
   def handle_cast(:setup, state) do
-    #TODO create the setup function like ruby agent.
     {:noreply, %{state | configs: setup()}}
   end
 
   def setup do
-   # Set const configs.
+    #TODO create the setup function like ruby agent.
    %{
       any: "some text"
     }
