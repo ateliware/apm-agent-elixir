@@ -7,6 +7,7 @@ defmodule ElasticAPM do
 
   def call(conn, _default) do
     before_send(conn)
+    conn
   end
 
   def before_send(conn) do

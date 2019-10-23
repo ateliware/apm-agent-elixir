@@ -20,7 +20,7 @@ defmodule ElasticAPM.Agent do
 
   @impl GenServer
   def handle_cast(:setup, state) do
-    {:noreply, %{state | configs: setup()}}
+    {:noreply, setup()}
   end
 
   def setup do
