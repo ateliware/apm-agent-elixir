@@ -1,6 +1,6 @@
 defmodule ElasticAPM.Database.EctoLogger do
-  def log(entry) do
+  def log(value, metadata) do
     require IEx; IEx.pry()
-    IO.inspect(entry)
+    IO.inspect(value)
   end
 end
