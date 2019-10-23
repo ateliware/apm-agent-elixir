@@ -8,8 +8,6 @@ if Code.ensure_loaded?(Telemetry) || Code.ensure_loaded?(:telemetry) do
           ScoutApm.Instruments.EctoTelemetry.attach(MyApp.Repo)
       """
       def attach(repo_module) do
-        IO.inspect(repo_module)
-        IO.inspect(Process.info(self(), :current_stacktrace))
         query_event =
           repo_module
           |> Module.split()
