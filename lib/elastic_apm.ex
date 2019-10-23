@@ -6,7 +6,7 @@ defmodule ElasticAPM do
 
   def call(conn, _default) do
     require IEx; IEx.pry()
-    before_send()
+    before_send(conn)
   end
 
   def before_send(conn) do
