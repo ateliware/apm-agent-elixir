@@ -2,9 +2,14 @@ defmodule ElasticAPM do
   @moduledoc """
   This is the Controller Plug module, it's called every time there's a request.
   """
-  
+  @doc """
+  A module plug implements an init function to initialize the options
+  """
   def init(default), do: default
 
+  @doc """
+  A module plug implements an call function with receive connection and initialize options.
+  """
   def call(conn, _default) do
     before_send(conn)
     conn
