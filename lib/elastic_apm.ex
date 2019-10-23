@@ -1,6 +1,6 @@
 defmodule ElasticAPM do
   @moduledoc """
-  Documentation for ElasticApm.
+  This is the Controller Plug module, it's called every time there's a request.
   """
   
   def init(default), do: default
@@ -10,14 +10,32 @@ defmodule ElasticAPM do
     conn
   end
 
+  @doc """
+  Get transtaction from conn.
+
+  Returns a Map with transaction data.
+  ## Examples
+      iex> ElasticAPM.before_send(conn)
+      {:ok, %Transaction{}}
+  """
   def before_send(conn) do
     full_name = action_name(conn)
     uri = "#{conn.request_path}"
 
     add_ip_context(conn)
-    IO.inspect(full_name)
+    #TODO create a transaction in this function
   end
 
+  @doc """
+  Get action name info from conn.
+
+  Returns String with controller and action name.
+  
+  ## Examples
+  
+      iex> ElasticAPM.action_name(conn)
+      "PageController#index"
+  """
   def action_name(conn) do
     controller_name = conn.private[:phoenix_controller]
     action_name = conn.private[:phoenix_action]
@@ -32,7 +50,15 @@ defmodule ElasticAPM do
     |> Enum.join(".")
   end
 
-  defp add_ip_context(conn) do
+  @doc """
+  Get IP from user.
+
+  ## Examples
+
+      iex> ElasticAPM.add_ip_context(conn)
+      "172.10.0.1"
+  """
+  def add_ip_context(conn) do
     remote_ip =
       case Plug.Conn.get_req_header(conn, "x-forwarded-for") do
         [forwarded_ip | _] ->
@@ -43,6 +69,5 @@ defmodule ElasticAPM do
           |> Tuple.to_list()
           |> Enum.join(".")
       end
-      IO.inspect(remote_ip)
   end
 end

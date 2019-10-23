@@ -1,4 +1,8 @@
 defmodule ElasticAPM.Agent do
+  @moduledoc """
+    This is the Agent Module, when the application starts it sets agent
+    configuration according to the environment variables 
+  """
   use GenServer
   
   defstruct [:configs]
