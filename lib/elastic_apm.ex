@@ -6,8 +6,7 @@ defmodule ElasticAPM do
 
   def call(conn, _default) do
     require IEx; IEx.pry()
-    conn
-    |> Plug.Conn.register_before_send(&before_send/1)
+    before_send()
   end
 
   def before_send(conn) do
@@ -15,8 +14,7 @@ defmodule ElasticAPM do
     uri = "#{conn.request_path}"
 
     add_ip_context(conn)
-
-    conn
+    IO.inspect(full_name)
   end
 
   def action_name(conn) do
