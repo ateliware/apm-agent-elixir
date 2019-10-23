@@ -13,13 +13,11 @@ defmodule ElasticAPM.Agent do
   end
 
   def start() do
-    require IEx; IEx.pry()
     GenServer.cast(__MODULE__, :setup)
   end
 
   @impl GenServer
   def handle_cast(:setup, state) do
-    require IEx; IEx.pry()
     #TODO create the setup function like ruby agent.
     {:noreply, %{state | configs: setup()}}
   end
@@ -28,6 +26,6 @@ defmodule ElasticAPM.Agent do
    # Set const configs.
    %{
       any: "some text"
-   }
+    }
   end
 end
