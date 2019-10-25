@@ -5,7 +5,7 @@ defmodule ElasticAPM.Application do
     import Supervisor.Spec, warn: false
 
     children = [
-      worker(ElasticAPM.Agent, [])
+      worker(ElasticAPM.Core.Agent, [])
     ]
     opts = [strategy: :one_for_all, name: ElasticAPM.Supervisor]
     Supervisor.start_link(children, opts)
