@@ -1,49 +1,73 @@
-defmodule ElasticApm.MixProject do
+defmodule ElasticAPM.Mixfile do
   use Mix.Project
 
   def project do
     [
       app: :elastic_apm,
-      version: "0.0.1",
-      elixir: "~> 1.9",
+      version: "1.0.3",
+      elixir: "~> 1.4",
+      build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
+      elixirc_paths: elixirc_paths(Mix.env()),
+      deps: deps(),
       description: description(),
-      package: package(),
-      deps: deps()
+      package: package()
     ]
   end
 
-  # Run "mix help compile.app" to learn about applications.
   def application do
+    # Specify extra applications you'll use from Erlang/Elixir
     [
-      extra_applications: [:logger],
+      extra_applications: [
+        :logger
+      ],
       mod: {ElasticAPM.Application, []}
     ]
   end
 
-  # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:ex_doc, "~> 0.18", only: :dev},
-      {:telemetry, "~> 0.4.0 or ~> 0.3.0", optional: true}
-      # {:dep_from_hexpm, "~> 0.3.0"},
-      # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
+      {:plug, "~>1.0"},
+      {:jason, "~> 1.0"},
+
+      # We only use `request/5` from hackney, which hasn't changed in the 1.0 line.
+      {:hackney, "~> 1.0"},
+      {:approximate_histogram, "~>0.1.1"},
+      {:telemetry, "~> 0.4.0 or ~> 0.3.0", optional: true},
+
+      #########################
+      # Dev & Testing Deps
+
+      {:ex_doc, ">= 0.0.0", only: [:dev]},
+      {:credo, "~> 0.5", only: [:dev, :test]},
+      {:dialyxir, "~> 0.5", only: [:dev], runtime: false},
+
+      # TODO: Should this be in the dev-only dependencies? It is needed for dialyzer to complete correctly.
+      {:phoenix, "~> 1.0", only: [:dev, :test]},
+      {:phoenix_slime, "~> 0.9.0", only: [:dev, :test]}
     ]
   end
 
-  defp description do
-  """
-  ateliware's Elastic APM agent for Elixir
-  """
+  defp description() do
+    """
+    ElasticAPM agent for Phoenix & Elixir projects. For more information, visit https://ElasticAPM.com/elixir.
+    """
   end
 
   defp package do
+    # These are the default files included in the package
     [
-      files: ["lib", "mix.exs", "README*", "LICENSE*"],
-      maintainers: ["Leticia Sales", "Samuel Meira"],
-      organization: ["ateliware"],
-      license: ["MIT"],
-      links: %{"GitHub" => "https://github.com/ateliware/apm-agent-elixir"}
+      name: :elastic_apm,
+      files: ["lib", "priv", "mix.exs", "README*", "LICENSE*"],
+      maintainers: ["Scout Team"],
+      licenses: ["Scout Software Agent License"],
+      links: %{
+        "GitHub" => "https://github.com/scoutapp/elastic_apm_elixir",
+        "Docs" => "http://docs.ElasticAPM.com/#elixir-agent"
+      }
     ]
   end
+
+  defp elixirc_paths(:test), do: ["lib", "test/support"]
+  defp elixirc_paths(_), do: ["lib"]
 end
