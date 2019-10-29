@@ -50,7 +50,7 @@ defmodule ElasticAPM.Core.AgentManager do
 
   def app_metadata do
     message =
-      ElasticAPM.Command.ApplicationEvent.app_metadata()
+      ElasticAPM.Command.Metadata.app_metadata()
       |> ElasticAPM.Command.message()
 
     send(message)

@@ -132,34 +132,42 @@ defmodule ElasticAPM.Command.TagRequest do
   end
 end
 
-defmodule ElasticAPM.Command.ApplicationEvent do
-  @enforce_keys [:timestamp]
-  defstruct [:timestamp, :event_type, :event_value, :source]
+defmodule ElasticAPM.Command.Metadata do
+  defstruct [:service, :system, :labels]
   alias __MODULE__
 
   def app_metadata do
-    %ApplicationEvent{
-      timestamp: NaiveDateTime.utc_now(),
-      event_type: "scout.metadata",
-      event_value: %{
-        language: "elixir",
-        version: System.version(),
-        server_time: "#{NaiveDateTime.to_iso8601(NaiveDateTime.utc_now())}Z",
-        framework: "",
-        framework_version: "",
-        environment: "",
-        app_server: "",
-        hostname: ElasticAPM.Cache.hostname(),
-        database_engine: "",
-        database_adapter: "",
-        application_name: ElasticAPM.Config.find(:name),
-        libraries: libraries(),
-        paas: "",
-        application_root: "",
-        git_sha: ElasticAPM.Cache.git_sha()
+
+    %Metadata{
+      service: %{
+        name: ElasticAPM.Config.find(:name),
+        environment: Mix.env(),
+        version: nil,
+        agent: %{
+          name: "elixir",
+          version: "1.0"
+        },
+        framework: %{
+          name: "Phoenix",
+          version: "1.4.9"
+        },
+        language: %{
+          name: "elixir",
+          version: System.version()
+        },
+        runtime: %{
+          name: "elixir",
+          version: System.version()
+        }
       },
-      source: inspect(self())
+      system: %{
+        hostname: ElasticAPM.Cache.hostname(),
+        architecture: "x86_64",
+        platform: "linux",
+      },
+      labels: nil
     }
+
   end
 
   defp libraries do
@@ -170,13 +178,12 @@ defmodule ElasticAPM.Command.ApplicationEvent do
   end
 
   defimpl ElasticAPM.Command, for: __MODULE__ do
-    def message(%ApplicationEvent{} = event) do
+    def message(%Metadata{} = event) do
       %{
-        ApplicationEvent: %{
-          timestamp: "#{NaiveDateTime.to_iso8601(event.timestamp)}Z",
-          event_type: event.event_type,
-          event_value: event.event_value,
-          source: event.source
+        metadata: %{
+          service: event.service,
+          system: event.system,
+          labels: event.labels
         }
       }
     end
