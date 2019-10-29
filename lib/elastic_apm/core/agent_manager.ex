@@ -33,68 +33,13 @@ defmodule ElasticAPM.Core.AgentManager do
     key = ElasticAPM.Config.find(:key)
 
     if enabled && core_agent_launch && key do
-      with {:ok, manifest} <- verify_or_download(),
-           bin_path when is_binary(bin_path) <- Manifest.bin_path(manifest),
-           {:ok, socket} <- run(bin_path) do
-        register()
-        app_metadata()
-        socket
-      else
-        _e ->
-          nil
-      end
+      register()
+      app_metadata()
+
+      # connection
+      # make connection like ruby agent
     else
       nil
-    end
-  end
-
-  @spec maybe_download :: {:ok, map()} | {:error, any()}
-  def maybe_download do
-    if ElasticAPM.Config.find(:core_agent_download) do
-      ElasticAPM.Logger.log(:info, "Failed to find valid ElasticAPM Core Agent. Attempting download.")
-
-      full_name = Core.agent_full_name()
-      url = Core.download_url()
-      dir = ElasticAPM.Config.find(:core_agent_dir)
-
-      with :ok <- download_binary(url, dir, "#{full_name}.tgz"),
-           {:ok, manifest} <- Core.verify(dir) do
-        ElasticAPM.Logger.log(:debug, "Successfully downloaded and verified ElasticAPM Core Agent")
-        {:ok, manifest}
-      else
-        _ ->
-          ElasticAPM.Logger.log(:warn, "Failed to start ElasticAPM Core Agent")
-          {:error, :failed_to_start}
-      end
-    else
-      ElasticAPM.Logger.log(
-        :warn,
-        "Not attempting to download ElasticAPM Core Agent due to :core_agent_download configuration"
-      )
-
-      {:error, :no_file_download_disabled}
-    end
-  end
-
-  @spec download_binary(String.t(), String.t(), String.t()) :: :ok | {:error, any()}
-  def download_binary(url, directory, file_name) do
-    destination = Path.join([directory, file_name])
-
-    with :ok <- File.mkdir_p(directory),
-         {:ok, 200, _headers, client_ref} <- :hackney.get(url, [], "", follow_redirect: true),
-         {:ok, body} <- :hackney.body(client_ref),
-         :ok <- File.write(destination, body),
-         :ok <- :erl_tar.extract(destination, [:compressed, {:cwd, directory}]) do
-      ElasticAPM.Logger.log(:info, "Downloaded and extracted ElasticAPM Core Agent")
-      :ok
-    else
-      e ->
-        ElasticAPM.Logger.log(
-          :warn,
-          "Failed to download and extract ElasticAPM Core Agent: #{inspect(e)}"
-        )
-
-        {:error, :failed_to_download_and_extract}
     end
   end
 
@@ -180,103 +125,16 @@ defmodule ElasticAPM.Core.AgentManager do
     (<<byte>> |> :binary.copy(len - byte_size(binary))) <> binary
   end
 
-  @spec run(String.t()) :: {:ok, :gen_tcp.socket()} | nil
-  def run(bin_path) do
-    ip =
-      ElasticAPM.Config.find(:core_agent_tcp_ip)
-      |> :inet_parse.ntoa()
-
-    port = ElasticAPM.Config.find(:core_agent_tcp_port)
-    socket_path = Core.socket_path()
-
-    args = ["start", "--socket", socket_path, "--daemonize", "true", "--tcp", "#{ip}:#{port}"]
-
-    with {_, 0} <- System.cmd(bin_path, args),
-         {:ok, socket} <- try_connect_twice(ip, port) do
-      {:ok, socket}
-    else
-      e ->
-        ElasticAPM.Logger.log(
-          :warn,
-          "Unable to start and connect to ElasticAPM Core Agent: #{inspect(e)}"
-        )
-
-        nil
-    end
-  end
-
   defp send_message(message, %{socket: socket} = state) do
     with {:ok, encoded} <- Jason.encode(message),
          message_length <- byte_size(encoded),
-         binary_length <- pad_leading(:binary.encode_unsigned(message_length, :big), 4, 0),
-         :ok <- :gen_tcp.send(socket, binary_length),
-         :ok <- :gen_tcp.send(socket, encoded),
-         {:ok, <<message_length::big-unsigned-integer-size(32)>>} <- :gen_tcp.recv(socket, 4),
-         {:ok, msg} <- :gen_tcp.recv(socket, message_length),
-         {:ok, decoded_msg} <- Jason.decode(msg) do
+         binary_length <- pad_leading(:binary.encode_unsigned(message_length, :big), 4, 0) do
       ElasticAPM.Logger.log(
         :debug,
-        "Received message of length #{message_length}: #{inspect(decoded_msg)}"
+        "Received message of length #{message_length}"
       )
 
       state
-    else
-      {:error, :closed} ->
-        Port.close(socket)
-
-        ElasticAPM.Logger.log(
-          :warn,
-          "ElasticAPM Core Agent TCP socket closed. Attempting to reconnect."
-        )
-
-        %{state | socket: setup()}
-
-      {:error, :enotconn} ->
-        Port.close(socket)
-
-        ElasticAPM.Logger.log(
-          :warn,
-          "ElasticAPM Core Agent TCP socket disconnected. Attempting to reconnect."
-        )
-
-        %{state | socket: setup()}
-
-      e ->
-        Port.close(socket)
-
-        ElasticAPM.Logger.log(
-          :warn,
-          "Error in ElasticAPM Core Agent TCP socket: #{inspect(e)}. Attempting to reconnect."
-        )
-
-        %{state | socket: setup()}
-    end
-  end
-
-  @spec verify_or_download :: {:ok, map()} | {:error, any()}
-  def verify_or_download do
-    dir = ElasticAPM.Config.find(:core_agent_dir)
-
-    case Core.verify(dir) do
-      {:ok, manifest} ->
-        ElasticAPM.Logger.log(:info, "Found valid Scout Core Agent")
-        {:ok, manifest}
-
-      {:error, _reason} ->
-        maybe_download()
-    end
-  end
-
-  @spec try_connect_twice(charlist(), char()) ::
-          {:ok, :gen_tcp.socket()} | {:error, atom()}
-  defp try_connect_twice(ip, port) do
-    case :gen_tcp.connect(ip, port, [{:active, false}, :binary]) do
-      {:ok, socket} ->
-        {:ok, socket}
-
-      _ ->
-        :timer.sleep(500)
-        :gen_tcp.connect(ip, port, [{:active, false}, :binary])
     end
   end
 end
